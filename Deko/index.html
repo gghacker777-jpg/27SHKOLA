@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кликер с покупкой темы</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Счётчик кликов -->
+  <div class="click-counter">Кликов: <span id="clickCount">0</span></div>
+
+  <!-- Панель тем -->
+  <div class="theme-panel">
+    <div class="theme-toggle">Сменить тему</div>
+    <div class="theme-list">
+      <div class="theme-item" data-img="images/kryg.png" data-price="0">Юрий Зигович <span class="price">Бесплатно</span></div>
+      <div class="theme-item" data-img="images/kryg1.png" data-price="10">Саня Неймарович <span class="price">10 кликов</span></div>
+    </div>
+  </div>
+
+  <!-- Круг -->
+  <img id="clickCircle" src="images/kryg.png" alt="Кликер">
+
+  <!-- Canvas для частиц -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- Окно нехватки кликов -->
+  <div class="not-enough" id="notEnough">
+    <div class="message">
+      Недостаточно кликов!
+      <span class="close">&times;</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
