@@ -9,22 +9,26 @@ const particles = [];
 const gravity = 0.35;
 const lifeTime = 160;
 
-let clicks = 0;
+// Получаем данные из localStorage или инициализируем
+let clicks = parseInt(localStorage.getItem('clicks')) || 0;
+const purchasedThemes = new Set(JSON.parse(localStorage.getItem('purchasedThemes')) || ['images/kryg.png']);
 const clickCountEl = document.getElementById('clickCount');
-const purchasedThemes = new Set();
-purchasedThemes.add('images/kryg.png'); // базовая тема куплена
+clickCountEl.textContent = clicks;
 
 // Панель тем
 const themeToggle = document.querySelector('.theme-toggle');
 const themeList = document.querySelector('.theme-list');
 const themeItems = document.querySelectorAll('.theme-item');
 
-// Окно недостатка кликов
+// Окно нехватки кликов
 const notEnough = document.getElementById('notEnough');
 const notEnoughClose = notEnough.querySelector('.close');
 notEnoughClose.addEventListener('click', () => {
   notEnough.classList.remove('show');
 });
+
+// Текущая тема
+circle.src = purchasedThemes.has('images/kryg1.png') ? 'images/kryg1.png' : 'images/kryg.png';
 
 themeToggle.addEventListener('click', () => {
   themeList.classList.toggle('show');
@@ -48,11 +52,18 @@ themeItems.forEach(item => {
       purchasedThemes.add(imgSrc);
       circle.src = imgSrc;
       themeList.classList.remove('show');
+      saveProgress(); // Сохраняем прогресс после покупки
     } else {
       notEnough.classList.add('show');
     }
   });
 });
+
+// Сохраняем прогресс
+function saveProgress() {
+  localStorage.setItem('clicks', clicks);
+  localStorage.setItem('purchasedThemes', JSON.stringify(Array.from(purchasedThemes)));
+}
 
 // Частицы
 class Particle {
@@ -119,14 +130,22 @@ function handlePress(e){
   e.preventDefault();
   circle.style.transform = `translate(-50%, -50%) scale(${shrinkScale})`;
 
-  clicks++;
+  // Определяем бонус
+  let bonus = 1;
+  if(circle.src.includes('kryg1.png')) { // если выбрана тема Саня Неймарович
+    bonus = 2;
+  }
+
+  clicks += bonus;
   clickCountEl.textContent = clicks;
+  saveProgress(); // сохраняем прогресс после каждого клика
 
   const rect = circle.getBoundingClientRect();
   const x = rect.left + rect.width/2;
   const y = rect.top + rect.height/2;
   spawnParticles(x, y);
 }
+
 
 function handleRelease(){
   circle.style.transform = 'translate(-50%, -50%) scale(1)';
