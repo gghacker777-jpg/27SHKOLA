@@ -53,6 +53,12 @@ themeItems.forEach(item => {
       circle.src = imgSrc;
       themeList.classList.remove('show');
       saveProgress(); // Сохраняем прогресс после покупки
+      if (imgSrc.includes('kryg1.png')) {
+  playThemeSound(); // 🔊 проиграть звук при покупке темы
+  let soundDuration = 3;
+
+}
+
     } else {
       notEnough.classList.add('show');
     }
@@ -161,3 +167,37 @@ window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+// === 🔊 Настройки звука для темы "Саня Неймарович" ===
+const themeSound = new Audio('sounds/kryg1.mp4'); // путь к твоему звуку
+let soundDuration = 3; // ⏱ сколько секунд проигрывать (можешь изменить!)
+
+// Функция для проигрывания звука ограниченной длины
+function playThemeSound() {
+  themeSound.currentTime = 0;
+  themeSound.play();
+  setTimeout(() => {
+    themeSound.pause();
+    themeSound.currentTime = 0;
+  }, soundDuration * 1000);
+}
+// === 🔁 Сброс прогресса ===
+const resetBtn = document.getElementById('resetBtn');
+
+resetBtn.addEventListener('click', () => {
+  const confirmReset = confirm('Ты уверен, что хочешь удалить все клики и купленные темы? 😢');
+  if (!confirmReset) return;
+
+  // Удаляем сохранения
+  localStorage.removeItem('clicks');
+  localStorage.removeItem('purchasedThemes');
+
+  // Сбрасываем переменные
+  clicks = 0;
+  purchasedThemes.clear();
+  purchasedThemes.add('images/kryg.png');
+  circle.src = 'images/kryg.png';
+  clickCountEl.textContent = '0';
+
+  alert('Прогресс сброшен! Всё начинается заново 😎');
+});
+
