@@ -8,21 +8,21 @@
 </head>
 <body>
 
+  <!-- Фоновый слой для блюра -->
+  <div class="background-layer" id="backgroundLayer"></div>
+
   <!-- Счётчик кликов -->
   <div class="click-counter">Кликов: <span id="clickCount">0</span></div>
 
   <!-- Панель тем -->
   <div class="theme-panel">
-    <div class="theme-toggle">Сменить тему</div>
-    <div class="theme-list">
-      <div class="theme-item" data-img="images/kryg.png" data-price="0">Юрий Зигович <span class="price">Бесплатно</span></div>
-      <div class="theme-item" data-img="images/kryg1.png" data-price="150">Саня Неймарович <span class="price">150 кликов</span></div>
+    <div class="theme-toggle">
+      <span class="theme-text">Сменить тему</span>
     </div>
   </div>
 
   <!-- Круг -->
   <img id="clickCircle" src="images/kryg.png" alt="Кликер">
-
   <!-- Canvas для частиц -->
   <canvas id="particleCanvas"></canvas>
 
@@ -31,6 +31,22 @@
     <div class="message">
       Недостаточно кликов!
       <span class="close">&times;</span>
+    </div>
+  </div>
+
+  <!-- Белое меню -->
+  <div class="white-menu" id="whiteMenu">
+    <div class="menu-close" id="menuClose">
+      <div class="close-circle"></div>
+      <div class="close-cross">&times;</div>
+    </div>
+    <div class="menu-content">
+      <h2 style="margin: 0 0 20px 0; color: #333; text-align: center;">Выбор темы</h2>
+      <div class="theme-list">
+        <div class="theme-item" data-img="images/kryg.png" data-price="0">Юрий Зигович <span class="price">Бесплатно</span></div>
+        <div class="theme-item" data-img="images/kryg1.png" data-price="1500">Саня Неймарович <span class="price">1500 кликов</span></div>
+        <div class="theme-item" data-img="images/morozova.png" data-price="1">Морозова БезСтенова <span class="price">5000 кликов</span></div>
+      </div>
     </div>
   </div>
 
