@@ -130,6 +130,7 @@ canvas {
   font-size: 18px;
   font-weight: bold;
 }
+
 /* Кнопка сброса */
 .reset-btn {
   position: fixed;
