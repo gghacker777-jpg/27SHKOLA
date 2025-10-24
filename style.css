@@ -80,10 +80,10 @@ body, html {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 25vw;
-  height: 25vw;
-  max-width: 120px;
-  max-height: 120px;
+  width: 40vw;       /* было 25vw — увеличено */
+  height: 40vw;
+  max-width: 200px;  /* было 120px — увеличено */
+  max-height: 200px;
   transform: translate(-50%, -50%) scale(1);
   border-radius: 50%;
   transition: transform 0.1s ease;
@@ -91,6 +91,7 @@ body, html {
   object-fit: cover;
   z-index: 5;
 }
+
 
 /* Canvas */
 canvas {
@@ -128,4 +129,25 @@ canvas {
   cursor: pointer;
   font-size: 18px;
   font-weight: bold;
+}
+/* Кнопка сброса */
+.reset-btn {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.reset-btn:hover {
+  background: #ff1a1a;
+  transform: scale(1.05);
 }
