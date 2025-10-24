@@ -15,6 +15,9 @@ const purchasedThemes = new Set(JSON.parse(localStorage.getItem('purchasedThemes
 const clickCountEl = document.getElementById('clickCount');
 clickCountEl.textContent = clicks;
 
+// Сбрасываем предупреждения при загрузке страницы
+localStorage.removeItem('warningCount');
+
 // Панель тем
 const themeToggle = document.querySelector('.theme-toggle');
 const themeList = document.querySelector('.theme-list');
@@ -29,12 +32,112 @@ notEnoughClose.addEventListener('click', () => {
 
 // Текущая тема
 circle.src = purchasedThemes.has('images/kryg1.png') ? 'images/kryg1.png' : 'images/kryg.png';
+circle.src = purchasedThemes.has('images/morozova.png') ? 'images/morozova.png' : 'images/kryg1.png';
+
+// Белое меню
+const whiteMenu = document.getElementById('whiteMenu');
+const menuClose = document.getElementById('menuClose');
+const backgroundLayer = document.getElementById('backgroundLayer');
 
 themeToggle.addEventListener('click', () => {
-  themeList.classList.toggle('show');
+  // Включаем блюр и показываем меню только один раз
+  if (!backgroundLayer.classList.contains('blurred')) {
+    backgroundLayer.classList.add('blurred');
+    whiteMenu.classList.add('show');
+    
+    // Блокируем только фоновые элементы, а не все body
+    const clickCircle = document.getElementById('clickCircle');
+    const resetBtn = document.getElementById('resetBtn');
+    const clickCounter = document.querySelector('.click-counter');
+    
+    if (clickCircle) clickCircle.style.pointerEvents = 'none';
+    if (resetBtn) resetBtn.style.pointerEvents = 'none';
+    if (clickCounter) clickCounter.style.pointerEvents = 'none';
+    
+    themeToggle.style.pointerEvents = 'none'; // Блокируем саму кнопку
+  }
+  // Повторное нажатие ничего не делает
 });
 
-// Изменение темы с проверкой кликов
+// Закрытие меню
+menuClose.addEventListener('click', () => {
+  whiteMenu.classList.remove('show');
+  backgroundLayer.classList.remove('blurred');
+  
+  // Разблокируем фоновые элементы
+  const clickCircle = document.getElementById('clickCircle');
+  const resetBtn = document.getElementById('resetBtn');
+  const clickCounter = document.querySelector('.click-counter');
+  
+  if (clickCircle) clickCircle.style.pointerEvents = 'auto';
+  if (resetBtn) resetBtn.style.pointerEvents = 'auto';
+  if (clickCounter) clickCounter.style.pointerEvents = 'auto';
+  
+  themeToggle.style.pointerEvents = 'auto'; // Разблокируем кнопку
+});
+
+// Выбор темы в белом меню (используем существующую логику)
+const menuThemeItems = document.querySelectorAll('#whiteMenu .theme-item');
+console.log('Найдено элементов тем в меню:', menuThemeItems.length);
+menuThemeItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const imgSrc = item.getAttribute('data-img');
+    const price = parseInt(item.getAttribute('data-price'));
+
+    if (purchasedThemes.has(imgSrc)) {
+      circle.src = imgSrc;
+      whiteMenu.classList.remove('show');
+      backgroundLayer.classList.remove('blurred');
+      
+      // Разблокируем фоновые элементы
+      const clickCircle = document.getElementById('clickCircle');
+      const resetBtn = document.getElementById('resetBtn');
+      const clickCounter = document.querySelector('.click-counter');
+      
+      if (clickCircle) clickCircle.style.pointerEvents = 'auto';
+      if (resetBtn) resetBtn.style.pointerEvents = 'auto';
+      if (clickCounter) clickCounter.style.pointerEvents = 'auto';
+      
+      themeToggle.style.pointerEvents = 'auto';
+      return;
+    }
+
+    if (clicks >= price) {
+      clicks -= price;
+      clickCountEl.textContent = clicks;
+      purchasedThemes.add(imgSrc);
+      circle.src = imgSrc;
+      whiteMenu.classList.remove('show');
+      backgroundLayer.classList.remove('blurred');
+      
+      // Разблокируем фоновые элементы
+      const clickCircle = document.getElementById('clickCircle');
+      const resetBtn = document.getElementById('resetBtn');
+      const clickCounter = document.querySelector('.click-counter');
+      
+      if (clickCircle) clickCircle.style.pointerEvents = 'auto';
+      if (resetBtn) resetBtn.style.pointerEvents = 'auto';
+      if (clickCounter) clickCounter.style.pointerEvents = 'auto';
+      
+      themeToggle.style.pointerEvents = 'auto';
+      saveProgress();
+
+      if (imgSrc.includes('kryg1.png')) {
+        playThemeSound();
+      }
+      
+      if (imgSrc.includes('morozova.png')) {
+        playMorozSound();
+      }
+
+    } else {
+      notEnough.classList.add('show');
+    }
+  });
+});
+
+// Изменение темы с проверкой кликов - ЗАКОММЕНТИРОВАНО
+/*
 themeItems.forEach(item => {
   item.addEventListener('click', () => {
     const imgSrc = item.getAttribute('data-img');
@@ -43,6 +146,7 @@ themeItems.forEach(item => {
     if (purchasedThemes.has(imgSrc)) {
       circle.src = imgSrc;
       themeList.classList.remove('show');
+      document.body.classList.remove('blurred');
       return;
     }
 
@@ -52,17 +156,24 @@ themeItems.forEach(item => {
       purchasedThemes.add(imgSrc);
       circle.src = imgSrc;
       themeList.classList.remove('show');
+      document.body.classList.remove('blurred');
       saveProgress();
 
       if (imgSrc.includes('kryg1.png')) {
         playThemeSound();
       }
+      
+      if (imgSrc.includes('morozova.png')) {
+        playMorozSound();
+      }
 
     } else {
       notEnough.classList.add('show');
+      document.body.classList.remove('blurred');
     }
   });
 });
+*/
 
 // Сохраняем прогресс
 function saveProgress() {
@@ -131,39 +242,101 @@ function spawnParticles(x, y) {
   }
 }
 
-// === 🛡️ Антиавтокликер (версия с допуском 2–3 мс) ===
-let lastClickTime = 0;
-let clickIntervals = [];
+// === 🛡️ Минимальная система антиавтокликера ===
+let clickTimes = [];
 let warningCount = 0;
+const MAX_WARNINGS = 3;
+const MAX_CLICKS_PER_SECOND = 100; // Увеличиваем до 100 кликов в секунду
+const CHECK_WINDOW = 10000; // Проверяем за последние 10 секунд
+const MIN_CLICK_INTERVAL = 2; // Уменьшаем до 2мс (только машинные клики)
+const REGULARITY_THRESHOLD = 1; // Уменьшаем порог до 1мс
+const MIN_FAST_CLICKS = 20; // Увеличиваем до 20 быстрых кликов подряд
 
 function handleAutoClickerProtection() {
   const now = Date.now();
-
-  if (lastClickTime !== 0) {
-    const interval = now - lastClickTime;
-    clickIntervals.push(interval);
-
-    if (clickIntervals.length > 15) clickIntervals.shift();
-
-    if (clickIntervals.length >= 10) {
-      // Проверяем, что все интервалы близки (разница не более 3 мс)
-      const base = clickIntervals[0];
-      const allClose = clickIntervals.every(i => Math.abs(i - base) <= 3);
-
-      if (allClose) {
+  
+  // Проверяем на слишком быстрые клики подряд (только если их много)
+  if (clickTimes.length > 0) {
+    const lastClick = clickTimes[clickTimes.length - 1];
+    const interval = now - lastClick;
+    
+    // Проверяем только если уже много быстрых кликов подряд
+    if (interval < MIN_CLICK_INTERVAL && clickTimes.length >= MIN_FAST_CLICKS) {
+      // Считаем сколько быстрых кликов подряд
+      let fastClicksInRow = 0;
+      for (let i = clickTimes.length - 1; i >= 0; i--) {
+        if (i === 0) break;
+        const prevInterval = clickTimes[i] - clickTimes[i-1];
+        if (prevInterval < MIN_CLICK_INTERVAL) {
+          fastClicksInRow++;
+        } else {
+          break;
+        }
+      }
+      
+      // Предупреждаем только если 8+ быстрых кликов подряд
+      if (fastClicksInRow >= MIN_FAST_CLICKS) {
         warningCount++;
-        clickIntervals = [];
-        if (warningCount < 3) {
-          alert(`⚠️ Подозрение на автокликер! (${warningCount}/3 предупреждений)`);
+        
+        if (warningCount < MAX_WARNINGS) {
+          alert(`⚠️ Слишком быстрые клики! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
+          clickTimes = [];
+          return;
         } else {
           alert("❌ Обнаружен автокликер. Все клики и темы сброшены!");
           resetAll();
+          return;
         }
       }
     }
   }
-
-  lastClickTime = now;
+  
+  clickTimes.push(now);
+  
+  // Удаляем старые клики (старше 2 секунд)
+  clickTimes = clickTimes.filter(time => now - time <= CHECK_WINDOW);
+  
+  // Проверяем количество кликов за последние 2 секунды
+  if (clickTimes.length > MAX_CLICKS_PER_SECOND) {
+    warningCount++;
+    
+    if (warningCount < MAX_WARNINGS) {
+      alert(`⚠️ Слишком много кликов! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
+      // Очищаем историю после предупреждения
+      clickTimes = [];
+    } else {
+      alert("❌ Обнаружен автокликер. Все клики и темы сброшеныimage.png");
+      resetAll();
+    }
+  }
+  
+  // Дополнительная проверка на регулярность (только для самых очевидных автокликеров)
+  if (clickTimes.length >= 50) {
+    const intervals = [];
+    for (let i = 1; i < clickTimes.length; i++) {
+      intervals.push(clickTimes[i] - clickTimes[i-1]);
+    }
+    
+    // Берем только последние 30 интервалов для анализа
+    const recentIntervals = intervals.slice(-30);
+    const avgInterval = recentIntervals.reduce((a, b) => a + b, 0) / recentIntervals.length;
+    
+    // Проверяем, что интервалы ОЧЕНЬ одинаковые (разница меньше 1мс)
+    const isTooRegular = recentIntervals.every(interval => Math.abs(interval - avgInterval) < REGULARITY_THRESHOLD);
+    
+    // И средний интервал должен быть подозрительно быстрым (1-10мс)
+    if (isTooRegular && avgInterval < 10 && avgInterval > 1) {
+      warningCount++;
+      
+      if (warningCount < MAX_WARNINGS) {
+        alert(`⚠️ Подозрительно регулярные клики! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
+        clickTimes = [];
+      } else {
+        alert("❌ Обнаружен автокликер. Все клики и темы сброшены!");
+        resetAll();
+      }
+    }
+  }
 }
 
 // Основная логика кликов
@@ -176,6 +349,9 @@ function handlePress(e) {
   let bonus = 1;
   if (circle.src.includes('kryg1.png')) {
     bonus = 2;
+  }
+  if (circle.src.includes('morozova.png')) {
+    bonus = 3;
   }
 
   clicks += bonus;
@@ -205,7 +381,9 @@ window.addEventListener('resize', () => {
 
 // === 🔊 Настройки звука ===
 const themeSound = new Audio('sounds/kryg1.mp4');
+const morozSound = new Audio('sounds/moroz.mp4');
 let soundDuration = 3;
+let morozSoundDuration = 3.5;
 
 function playThemeSound() {
   themeSound.currentTime = 0;
@@ -214,6 +392,15 @@ function playThemeSound() {
     themeSound.pause();
     themeSound.currentTime = 0;
   }, soundDuration * 1000);
+}
+
+function playMorozSound() {
+  morozSound.currentTime = 0;
+  morozSound.play();
+  setTimeout(() => {
+    morozSound.pause();
+    morozSound.currentTime = 0;
+  }, morozSoundDuration * 1000);
 }
 
 // === 🔁 Сброс прогресса ===
@@ -228,12 +415,13 @@ resetBtn.addEventListener('click', () => {
 function resetAll() {
   localStorage.removeItem('clicks');
   localStorage.removeItem('purchasedThemes');
+  localStorage.removeItem('warningCount');
   clicks = 0;
   purchasedThemes.clear();
   purchasedThemes.add('images/kryg.png');
   circle.src = 'images/kryg.png';
   clickCountEl.textContent = '0';
   warningCount = 0;
-  clickIntervals = [];
+  clickTimes = [];
   alert('Прогресс сброшен! Всё начинается заново 😎');
 }
