@@ -12,6 +12,7 @@ const lifeTime = 160;
 // Получаем данные из localStorage или инициализируем
 let clicks = parseInt(localStorage.getItem('clicks')) || 0;
 const purchasedThemes = new Set(JSON.parse(localStorage.getItem('purchasedThemes')) || ['images/kryg.png']);
+let currentTheme = localStorage.getItem('currentTheme') || 'images/kryg.png';
 const clickCountEl = document.getElementById('clickCount');
 clickCountEl.textContent = clicks;
 
@@ -31,8 +32,7 @@ notEnoughClose.addEventListener('click', () => {
 });
 
 // Текущая тема
-circle.src = purchasedThemes.has('images/kryg1.png') ? 'images/kryg1.png' : 'images/kryg.png';
-circle.src = purchasedThemes.has('images/morozova.png') ? 'images/morozova.png' : 'images/kryg1.png';
+circle.src = currentTheme;
 
 // Белое меню
 const whiteMenu = document.getElementById('whiteMenu');
@@ -85,20 +85,22 @@ menuThemeItems.forEach(item => {
     const price = parseInt(item.getAttribute('data-price'));
 
     if (purchasedThemes.has(imgSrc)) {
+      currentTheme = imgSrc;
       circle.src = imgSrc;
       whiteMenu.classList.remove('show');
       backgroundLayer.classList.remove('blurred');
-      
+
       // Разблокируем фоновые элементы
       const clickCircle = document.getElementById('clickCircle');
       const resetBtn = document.getElementById('resetBtn');
       const clickCounter = document.querySelector('.click-counter');
-      
+
       if (clickCircle) clickCircle.style.pointerEvents = 'auto';
       if (resetBtn) resetBtn.style.pointerEvents = 'auto';
       if (clickCounter) clickCounter.style.pointerEvents = 'auto';
-      
+
       themeToggle.style.pointerEvents = 'auto';
+      saveProgress();
       return;
     }
 
@@ -106,26 +108,27 @@ menuThemeItems.forEach(item => {
       clicks -= price;
       clickCountEl.textContent = clicks;
       purchasedThemes.add(imgSrc);
+      currentTheme = imgSrc;
       circle.src = imgSrc;
       whiteMenu.classList.remove('show');
       backgroundLayer.classList.remove('blurred');
-      
+
       // Разблокируем фоновые элементы
       const clickCircle = document.getElementById('clickCircle');
       const resetBtn = document.getElementById('resetBtn');
       const clickCounter = document.querySelector('.click-counter');
-      
+
       if (clickCircle) clickCircle.style.pointerEvents = 'auto';
       if (resetBtn) resetBtn.style.pointerEvents = 'auto';
       if (clickCounter) clickCounter.style.pointerEvents = 'auto';
-      
+
       themeToggle.style.pointerEvents = 'auto';
       saveProgress();
 
       if (imgSrc.includes('kryg1.png')) {
         playThemeSound();
       }
-      
+
       if (imgSrc.includes('morozova.png')) {
         playMorozSound();
       }
@@ -179,6 +182,8 @@ themeItems.forEach(item => {
 function saveProgress() {
   localStorage.setItem('clicks', clicks);
   localStorage.setItem('purchasedThemes', JSON.stringify(Array.from(purchasedThemes)));
+  localStorage.setItem('currentTheme', currentTheme);
+  localStorage.setItem('warningCount', warningCount);
 }
 
 // Частицы
@@ -242,95 +247,42 @@ function spawnParticles(x, y) {
   }
 }
 
-// === 🛡️ Минимальная система антиавтокликера ===
+// === 🛡️ Система антиавтокликера ===
 let clickTimes = [];
-let warningCount = 0;
+let warningCount = parseInt(localStorage.getItem('warningCount')) || 0;
 const MAX_WARNINGS = 3;
-const MAX_CLICKS_PER_SECOND = 100; // Увеличиваем до 100 кликов в секунду
-const CHECK_WINDOW = 10000; // Проверяем за последние 10 секунд
-const MIN_CLICK_INTERVAL = 2; // Уменьшаем до 2мс (только машинные клики)
-const REGULARITY_THRESHOLD = 1; // Уменьшаем порог до 1мс
-const MIN_FAST_CLICKS = 20; // Увеличиваем до 20 быстрых кликов подряд
+const MIN_CLICKS_FOR_CHECK = 15;
+const INTERVAL_TOLERANCE = 2; // ±2 мс для более точной проверки
 
 function handleAutoClickerProtection() {
   const now = Date.now();
-  
-  // Проверяем на слишком быстрые клики подряд (только если их много)
-  if (clickTimes.length > 0) {
-    const lastClick = clickTimes[clickTimes.length - 1];
-    const interval = now - lastClick;
-    
-    // Проверяем только если уже много быстрых кликов подряд
-    if (interval < MIN_CLICK_INTERVAL && clickTimes.length >= MIN_FAST_CLICKS) {
-      // Считаем сколько быстрых кликов подряд
-      let fastClicksInRow = 0;
-      for (let i = clickTimes.length - 1; i >= 0; i--) {
-        if (i === 0) break;
-        const prevInterval = clickTimes[i] - clickTimes[i-1];
-        if (prevInterval < MIN_CLICK_INTERVAL) {
-          fastClicksInRow++;
-        } else {
-          break;
-        }
-      }
-      
-      // Предупреждаем только если 8+ быстрых кликов подряд
-      if (fastClicksInRow >= MIN_FAST_CLICKS) {
-        warningCount++;
-        
-        if (warningCount < MAX_WARNINGS) {
-          alert(`⚠️ Слишком быстрые клики! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
-          clickTimes = [];
-          return;
-        } else {
-          alert("❌ Обнаружен автокликер. Все клики и темы сброшены!");
-          resetAll();
-          return;
-        }
-      }
-    }
-  }
-  
   clickTimes.push(now);
-  
-  // Удаляем старые клики (старше 2 секунд)
-  clickTimes = clickTimes.filter(time => now - time <= CHECK_WINDOW);
-  
-  // Проверяем количество кликов за последние 2 секунды
-  if (clickTimes.length > MAX_CLICKS_PER_SECOND) {
-    warningCount++;
-    
-    if (warningCount < MAX_WARNINGS) {
-      alert(`⚠️ Слишком много кликов! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
-      // Очищаем историю после предупреждения
-      clickTimes = [];
-    } else {
-      alert("❌ Обнаружен автокликер. Все клики и темы сброшеныimage.png");
-      resetAll();
-    }
+
+  // Оставляем только последние 16 кликов для проверки
+  if (clickTimes.length > 16) {
+    clickTimes = clickTimes.slice(-16);
   }
-  
-  // Дополнительная проверка на регулярность (только для самых очевидных автокликеров)
-  if (clickTimes.length >= 50) {
+
+  // Проверяем только если накоплено достаточно кликов
+  if (clickTimes.length >= MIN_CLICKS_FOR_CHECK) {
     const intervals = [];
     for (let i = 1; i < clickTimes.length; i++) {
-      intervals.push(clickTimes[i] - clickTimes[i-1]);
+      intervals.push(clickTimes[i] - clickTimes[i - 1]);
     }
-    
-    // Берем только последние 30 интервалов для анализа
-    const recentIntervals = intervals.slice(-30);
-    const avgInterval = recentIntervals.reduce((a, b) => a + b, 0) / recentIntervals.length;
-    
-    // Проверяем, что интервалы ОЧЕНЬ одинаковые (разница меньше 1мс)
-    const isTooRegular = recentIntervals.every(interval => Math.abs(interval - avgInterval) < REGULARITY_THRESHOLD);
-    
-    // И средний интервал должен быть подозрительно быстрым (1-10мс)
-    if (isTooRegular && avgInterval < 10 && avgInterval > 1) {
+
+    // Проверяем, что интервалы слишком регулярные (автокликер)
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const maxDeviation = Math.max(...intervals.map(i => Math.abs(i - avgInterval)));
+
+    // Если все интервалы одинаковые в пределах 2мс - это автокликер
+    const isAutoClicker = maxDeviation <= INTERVAL_TOLERANCE;
+
+    if (isAutoClicker) {
       warningCount++;
-      
+
       if (warningCount < MAX_WARNINGS) {
-        alert(`⚠️ Подозрительно регулярные клики! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
-        clickTimes = [];
+        alert(`⚠️ Подозрительная активность! (${warningCount}/${MAX_WARNINGS} предупреждений)`);
+        clickTimes = []; // Очищаем историю
       } else {
         alert("❌ Обнаружен автокликер. Все клики и темы сброшены!");
         resetAll();
@@ -415,10 +367,12 @@ resetBtn.addEventListener('click', () => {
 function resetAll() {
   localStorage.removeItem('clicks');
   localStorage.removeItem('purchasedThemes');
+  localStorage.removeItem('currentTheme');
   localStorage.removeItem('warningCount');
   clicks = 0;
   purchasedThemes.clear();
   purchasedThemes.add('images/kryg.png');
+  currentTheme = 'images/kryg.png';
   circle.src = 'images/kryg.png';
   clickCountEl.textContent = '0';
   warningCount = 0;
