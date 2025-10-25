@@ -79,10 +79,37 @@ menuClose.addEventListener('click', () => {
 // Выбор темы в белом меню (используем существующую логику)
 const menuThemeItems = document.querySelectorAll('#whiteMenu .theme-item');
 console.log('Найдено элементов тем в меню:', menuThemeItems.length);
+// Функция для обновления состояния блокировок тем
+function updateThemeLocks() {
+  const allThemes = document.querySelectorAll('#whiteMenu .theme-item');
+  allThemes.forEach(item => {
+    const order = parseInt(item.getAttribute('data-order'));
+    const imgSrc = item.getAttribute('data-img');
+
+    // Первая тема всегда разблокирована
+    if (order === 1) {
+      item.classList.remove('locked');
+      return;
+    }
+
+    // Проверяем, куплена ли предыдущая тема
+    const prevOrder = order - 1;
+    const prevTheme = Array.from(allThemes).find(t => parseInt(t.getAttribute('data-order')) === prevOrder);
+    const prevImgSrc = prevTheme ? prevTheme.getAttribute('data-img') : null;
+
+    if (prevImgSrc && purchasedThemes.has(prevImgSrc) && !purchasedThemes.has(imgSrc)) {
+      item.classList.remove('locked');
+    } else if (!purchasedThemes.has(imgSrc)) {
+      item.classList.add('locked');
+    }
+  });
+}
+
 menuThemeItems.forEach(item => {
   item.addEventListener('click', () => {
     const imgSrc = item.getAttribute('data-img');
     const price = parseInt(item.getAttribute('data-price'));
+    const order = parseInt(item.getAttribute('data-order'));
 
     if (purchasedThemes.has(imgSrc)) {
       currentTheme = imgSrc;
@@ -102,6 +129,18 @@ menuThemeItems.forEach(item => {
       themeToggle.style.pointerEvents = 'auto';
       saveProgress();
       return;
+    }
+
+    // Проверяем последовательность покупки
+    if (order > 1) {
+      const prevOrder = order - 1;
+      const prevTheme = Array.from(menuThemeItems).find(t => parseInt(t.getAttribute('data-order')) === prevOrder);
+      const prevImgSrc = prevTheme ? prevTheme.getAttribute('data-img') : null;
+
+      if (!prevImgSrc || !purchasedThemes.has(prevImgSrc)) {
+        alert('Сначала купите предыдущую тему!');
+        return;
+      }
     }
 
     if (clicks >= price) {
@@ -124,6 +163,7 @@ menuThemeItems.forEach(item => {
 
       themeToggle.style.pointerEvents = 'auto';
       saveProgress();
+      updateThemeLocks(); // Обновляем блокировки после покупки
 
       if (imgSrc.includes('kryg1.png')) {
         playThemeSound();
@@ -138,6 +178,9 @@ menuThemeItems.forEach(item => {
     }
   });
 });
+
+// Обновляем блокировки при загрузке страницы
+updateThemeLocks();
 
 // Изменение темы с проверкой кликов - ЗАКОММЕНТИРОВАНО
 /*
