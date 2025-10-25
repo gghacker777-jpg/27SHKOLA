@@ -310,6 +310,21 @@ canvas {
   font-size: 14px;
 }
 
+#whiteMenu .theme-item.locked {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+#whiteMenu .theme-item.locked .lock-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #666;
+}
+
 /* Кнопка сброса */
 .reset-btn {
   position: fixed;
