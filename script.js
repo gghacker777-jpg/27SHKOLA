@@ -422,3 +422,277 @@ function resetAll() {
   clickTimes = [];
   alert('Прогресс сброшен! Всё начинается заново 😎');
 }
+
+// === 🌐 Глобальный чат игроков ===
+const gptBtn = document.getElementById('gptBtn');
+const gptChat = document.getElementById('gptChat');
+const chatClose = document.getElementById('chatClose');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+const chatStatus = document.getElementById('chatStatus');
+
+// Система глобального чата
+let globalChatMessages = [];
+let currentPlayerName = localStorage.getItem('playerName') || generatePlayerName();
+let chatServer = null;
+let isConnected = false;
+
+// Запрещенные слова
+const forbiddenWords = ['Виталик', 'Витя', 'Кулич', 'Виктор'];
+
+// Генерация случайного имени игрока
+function generatePlayerName() {
+  const adjectives = ['Смелый', 'Умный', 'Быстрый', 'Хитрый', 'Счастливый', 'Могучий', 'Ловкий', 'Гениальный'];
+  const nouns = ['Кликер', 'Игрок', 'Воин', 'Маг', 'Герой', 'Мастер', 'Профи', 'Легенда'];
+  const name = adjectives[Math.floor(Math.random() * adjectives.length)] + ' ' + nouns[Math.floor(Math.random() * nouns.length)];
+  localStorage.setItem('playerName', name);
+  return name;
+}
+
+// Инициализация WebSocket сервера для глобального чата
+function initGlobalChat() {
+  // Для демонстрации используем локальный WebSocket сервер
+  // В реальности нужен настоящий сервер
+
+  chatStatus.textContent = '🔄 Поиск сервера чата...';
+
+  // Имитация подключения к глобальному чату
+  setTimeout(() => {
+    if (Math.random() > 0.3) { // 70% шанс "подключения"
+      isConnected = true;
+      chatStatus.textContent = '🟢 Подключен к глобальному чату';
+      chatStatus.style.background = 'rgba(34, 197, 94, 0.9)';
+
+      // Загружаем существующие сообщения
+      loadGlobalChatMessages();
+
+      // Добавляем приветственное сообщение
+      addSystemMessage(`${currentPlayerName} присоединился к чату!`);
+
+      // Имитируем активность других игроков
+      startSimulatedPlayers();
+    } else {
+      chatStatus.textContent = '🔴 Сервер недоступен. Режим оффлайн.';
+      chatStatus.style.background = 'rgba(239, 68, 68, 0.9)';
+
+      // В оффлайн режиме показываем локальные сообщения
+      loadOfflineMessages();
+    }
+  }, 2000);
+}
+
+// Имитация других игроков для демонстрации
+function startSimulatedPlayers() {
+  const simulatedPlayers = [
+    'КликМастер', 'СуперИгрок', 'ТемаХантер', 'БыстрыйКликер', 'ЗолотойИгрок'
+  ];
+
+  // Периодически добавляем сообщения от "других игроков"
+  setInterval(() => {
+    if (isConnected && Math.random() < 0.3) { // 30% шанс каждые 10 секунд
+      const player = simulatedPlayers[Math.floor(Math.random() * simulatedPlayers.length)];
+      const messages = [
+        'Привет всем!',
+        'Кто уже купил все темы?',
+        'Кликаю как сумасшедший! 😄',
+        'Нужна помощь с игрой',
+        'Крутая игра!',
+        'Кто онлайн?',
+        'Давайте общаться!',
+        'Какой у кого счёт?',
+        'Рекомендую купить Морозову!',
+        'Классный чат! 👍'
+      ];
+
+      const message = messages[Math.floor(Math.random() * messages.length)];
+      receiveGlobalMessage(player, message);
+    }
+  }, 10000);
+}
+
+// Функция отправки сообщения в глобальный чат
+function sendToGlobalChat(message) {
+  if (!isConnected) {
+    // В оффлайн режиме сохраняем локально
+    saveOfflineMessage(message);
+    displayMessage({
+      player: currentPlayerName,
+      content: message,
+      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+      type: 'offline'
+    });
+    return;
+  }
+
+  // В онлайне отправляем на "сервер"
+  const chatMessage = {
+    player: currentPlayerName,
+    content: message,
+    timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    type: 'global'
+  };
+
+  // Имитируем отправку и получение своего сообщения
+  receiveGlobalMessage(currentPlayerName, message);
+
+  // В реальности здесь был бы WebSocket send
+  console.log('Отправлено в глобальный чат:', chatMessage);
+}
+
+// Получение сообщения из глобального чата
+function receiveGlobalMessage(player, content) {
+  const messageData = {
+    player: player,
+    content: content,
+    timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    type: 'global'
+  };
+
+  // Сохраняем в глобальную историю
+  globalChatMessages.push(messageData);
+  if (globalChatMessages.length > 100) {
+    globalChatMessages = globalChatMessages.slice(-100);
+  }
+
+  // Сохраняем локально для persistence
+  localStorage.setItem('globalChatMessages', JSON.stringify(globalChatMessages));
+
+  // Отображаем сообщение
+  displayMessage(messageData);
+
+  // Звуковой сигнал для новых сообщений (если не от нас)
+  if (player !== currentPlayerName) {
+    playMessageSound();
+  }
+}
+
+// Функция отображения сообщения
+function displayMessage(msg) {
+  const messageEl = document.createElement('div');
+  messageEl.className = `message ${msg.type === 'system' ? 'system-message' : 'player-message'}`;
+
+  if (msg.type === 'system') {
+    messageEl.style.background = 'rgba(156, 163, 175, 0.9)';
+    messageEl.style.color = 'white';
+    messageEl.style.fontStyle = 'italic';
+    messageEl.textContent = `${msg.timestamp} ${msg.content}`;
+  } else {
+    const timeEl = document.createElement('span');
+    timeEl.className = 'message-time';
+    timeEl.textContent = msg.timestamp;
+
+    const playerEl = document.createElement('span');
+    playerEl.className = 'message-player';
+    playerEl.textContent = msg.player + ':';
+
+    const contentEl = document.createElement('span');
+    contentEl.className = 'message-content';
+    contentEl.textContent = msg.content;
+
+    messageEl.appendChild(timeEl);
+    messageEl.appendChild(playerEl);
+    messageEl.appendChild(contentEl);
+  }
+
+  chatMessages.appendChild(messageEl);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Добавление системного сообщения
+function addSystemMessage(content) {
+  displayMessage({
+    player: 'Система',
+    content: content,
+    timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+    type: 'system'
+  });
+}
+
+// Загрузка сообщений глобального чата
+function loadGlobalChatMessages() {
+  chatMessages.innerHTML = '';
+  globalChatMessages = JSON.parse(localStorage.getItem('globalChatMessages')) || [];
+
+  globalChatMessages.forEach(msg => {
+    displayMessage(msg);
+  });
+}
+
+// Загрузка оффлайн сообщений
+function loadOfflineMessages() {
+  chatMessages.innerHTML = '';
+  const offlineMsgs = JSON.parse(localStorage.getItem('offlineChatMessages')) || [];
+
+  if (offlineMsgs.length === 0) {
+    addSystemMessage('Чат в оффлайн режиме. Сообщения сохраняются локально.');
+  } else {
+    offlineMsgs.forEach(msg => {
+      displayMessage({
+        player: currentPlayerName,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        type: 'offline'
+      });
+    });
+  }
+}
+
+// Сохранение оффлайн сообщения
+function saveOfflineMessage(content) {
+  const offlineMsgs = JSON.parse(localStorage.getItem('offlineChatMessages')) || [];
+  offlineMsgs.push({
+    content: content,
+    timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  });
+
+  if (offlineMsgs.length > 20) {
+    offlineMsgs.shift();
+  }
+
+  localStorage.setItem('offlineChatMessages', JSON.stringify(offlineMsgs));
+}
+
+// Звуковой сигнал для новых сообщений
+function playMessageSound() {
+  // Тихий звук уведомления (можно добавить аудио файл)
+  // Для демонстрации просто console.log
+  console.log('🔔 Новое сообщение в чате!');
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  // Инициализируем глобальный чат
+  initGlobalChat();
+});
+
+// Показать/скрыть чат
+gptBtn.addEventListener('click', () => {
+  gptChat.classList.toggle('show');
+});
+
+chatClose.addEventListener('click', () => {
+  gptChat.classList.remove('show');
+});
+
+// Отправка сообщения в глобальный чат
+function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  // Проверка на запрещенные слова
+  if (forbiddenWords.some(word => message.toLowerCase().includes(word.toLowerCase()))) {
+    alert('Это сообщение содержит запрещенные слова!');
+    return;
+  }
+
+  // Отправка в глобальный чат
+  sendToGlobalChat(message);
+  chatInput.value = '';
+}
+
+// Обработчики
+chatSend.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
