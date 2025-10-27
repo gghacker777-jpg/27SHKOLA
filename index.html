@@ -53,6 +53,23 @@
   <!-- Кнопка сброса -->
   <button class="reset-btn" id="resetBtn">Сбросить</button>
 
+  <!-- Кнопка чата -->
+  <button class="gpt-btn" id="gptBtn">💬 Чат</button>
+
+  <!-- Окно общего чата -->
+  <div class="gpt-chat" id="gptChat">
+    <div class="chat-header">
+      <span>🌐 Глобальный чат</span>
+      <span class="chat-close" id="chatClose">&times;</span>
+    </div>
+    <div class="chat-status" id="chatStatus">Подключение...</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-container">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение...">
+      <button class="chat-send" id="chatSend">Отправить</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
