@@ -350,3 +350,161 @@ canvas {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(255, 77, 77, 0.4);
 }
+
+/* Кнопка GPT */
+.gpt-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(34, 197, 94, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 14px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.gpt-btn:hover {
+  background: rgba(22, 163, 74, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(34, 197, 94, 0.4);
+}
+
+/* Окно чата GPT */
+.gpt-chat {
+  position: fixed;
+  bottom: 80px;
+  left: 20px;
+  width: 350px;
+  height: 500px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.gpt-chat.show {
+  display: flex;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  border-radius: 15px 15px 0 0;
+  font-weight: 600;
+}
+
+.chat-close {
+  cursor: pointer;
+  font-size: 24px;
+  transition: transform 0.2s ease;
+}
+
+.chat-close:hover {
+  transform: scale(1.2);
+}
+
+.chat-status {
+  padding: 5px 20px;
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: rgba(248, 249, 250, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message {
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.player-message {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  align-self: flex-end;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.message-time {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-right: 8px;
+  font-weight: normal;
+}
+
+.message-player {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.message-content {
+  word-wrap: break-word;
+}
+
+.chat-input-container {
+  display: flex;
+  padding: 15px;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0 0 15px 15px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 25px;
+  outline: none;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.chat-input:focus {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.chat-send {
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.chat-send:hover {
+  background: rgba(22, 163, 74, 0.95);
+  transform: translateY(-1px);
+}
