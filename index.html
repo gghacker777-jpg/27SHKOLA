@@ -1,75 +1,113 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Кликер с покупкой темы</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2 Герои - Энциклопедия</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="design.css">
 </head>
 <body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-dragon logo-icon"></i>
+                    <h1>Dota 2 <span>Герои</span></h1>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Поиск героя...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+        </div>
+    </header>
 
-  <!-- Фоновый слой для блюра -->
-  <div class="background-layer" id="backgroundLayer"></div>
+    <main>
+        <div class="container">
+            <div class="heroes-section">
+                <div class="heroes-list">
+                    <h2>Все герои Dota 2</h2>
+                    <div id="heroes-container">
+                        <!-- Герои будут добавлены через JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="hero-details" id="hero-details">
+                    <div class="hero-header">
+                        <div class="hero-avatar-large" id="hero-avatar-large">
+                            <i class="fas fa-question"></i>
+                        </div>
+                        <div class="hero-title">
+                            <h2 id="hero-name">Выберите героя</h2>
+                            <div class="hero-role" id="hero-role">Нажмите на героя из списка слева</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-card">
+                            <h3>Здоровье (HP)</h3>
+                            <div class="stat-value" id="hero-hp">0</div>
+                            <div class="hp-bar">
+                                <div class="hp-fill" id="hp-fill"></div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Мана (MP)</h3>
+                            <div class="stat-value" id="hero-mana">0</div>
+                            <div class="mana-bar">
+                                <div class="mana-fill" id="mana-fill"></div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Сложность</h3>
+                            <div class="stat-value" id="hero-difficulty">
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <div style="margin-top: 10px; color: #aaa;" id="difficulty-text">Легкий</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-lore">
+                        <h3>История героя</h3>
+                        <p id="hero-lore">Выберите героя из списка, чтобы узнать его историю и способности.</p>
+                    </div>
+                    
+                    <div class="hero-abilities">
+                        <h3>Способности</h3>
+                        <div class="abilities-container" id="abilities-container">
+                            <!-- Способности будут добавлены через JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-  <!-- Счётчик кликов -->
-  <div class="click-counter">Кликов: <span id="clickCount">0</span></div>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-dragon"></i>
+                    <span>Dota 2 Герои</span>
+                </div>
+                <div class="copyright">
+                    <p>© 2023 Энциклопедия героев Dota 2. Все права защищены.</p>
+                    <p>Этот сайт является фанатским проектом и не связан с Valve Corporation.</p>
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-steam"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-  <!-- Панель тем -->
-  <div class="theme-panel">
-    <div class="theme-toggle">
-      <span class="theme-text">Сменить тему</span>
-    </div>
-  </div>
-
-  <!-- Круг -->
-  <img id="clickCircle" src="images/kryg.png" alt="Кликер">
-  <!-- Canvas для частиц -->
-  <canvas id="particleCanvas"></canvas>
-
-  <!-- Окно нехватки кликов -->
-  <div class="not-enough" id="notEnough">
-    <div class="message">
-      Недостаточно кликов!
-      <span class="close">&times;</span>
-    </div>
-  </div>
-
-  <!-- Белое меню -->
-  <div class="white-menu" id="whiteMenu">
-    <div class="menu-close" id="menuClose">
-      <div class="close-circle"></div>
-      <div class="close-cross">&times;</div>
-    </div>
-    <div class="menu-content">
-      <h2 style="margin: 0 0 20px 0; color: #333; text-align: center;">Выбор темы</h2>
-      <div class="theme-list">
-        <div class="theme-item" data-img="images/kryg.png" data-price="0" data-order="1">Юрий Зигович <span class="price">Бесплатно</span></div>
-        <div class="theme-item locked" data-img="images/kryg1.png" data-price="1500" data-order="2">Саня Неймарович <span class="price">1500 кликов</span><span class="lock-icon">🔒</span></div>
-        <div class="theme-item locked" data-img="images/morozova.png" data-price="5000" data-order="3">Морозова БезСтенова <span class="price">5000 кликов</span><span class="lock-icon">🔒</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Кнопка сброса -->
-  <button class="reset-btn" id="resetBtn">Сбросить</button>
-
-  <!-- Кнопка чата -->
-  <button class="gpt-btn" id="gptBtn">💬 Чат</button>
-
-  <!-- Окно общего чата -->
-  <div class="gpt-chat" id="gptChat">
-    <div class="chat-header">
-      <span>🌐 Глобальный чат</span>
-      <span class="chat-close" id="chatClose">&times;</span>
-    </div>
-    <div class="chat-status" id="chatStatus">Подключение...</div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input-container">
-      <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение...">
-      <button class="chat-send" id="chatSend">Отправить</button>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
